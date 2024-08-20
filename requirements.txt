@@ -1,0 +1,14 @@
+streamlit
+pandas
+numpy
+seaborn
+matplotlib
+scikit-learn
+pickle
+joblib
+os
+io
+ucimlrepo
+scipy
+PyPDF2
+streamlit_option_menu
