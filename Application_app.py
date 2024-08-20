@@ -52,7 +52,7 @@ if selected == "Nettoyage":
         cleaning_brute_data()
 
     except Exception as e:
-        st.warning("Désolé une erreur s'est produit réactualisez l'appli et réessayez")
+        st.warning(f"Désolé une erreur s'est produit {e} réactualisez l'appli et réessayez")
 
  # Contenu des page d'analyse   
 elif selected == "Analyse":
