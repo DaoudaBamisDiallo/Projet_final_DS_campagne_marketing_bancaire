@@ -248,8 +248,7 @@ def save_modele(vars_imp,modele,algo):
        
     except Exception as e:
         st.warning(f"Une Erreure d'enregistrement  du modle: {e}")
-    else:
-         st.markdown(f"L'enregistrement du modèle {algo} et les variables selectionnées à Reussit")
+    
 # ------------modelisation-----------------------------
 def models(algo,train_x,train_y):
     if algo=="Regression Logistique":
