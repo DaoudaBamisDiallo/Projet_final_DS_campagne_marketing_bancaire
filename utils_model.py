@@ -18,6 +18,7 @@ from sklearn.metrics import classification_report,ConfusionMatrixDisplay,confusi
 from sklearn.feature_selection import RFE
 import streamlit as st
 
+#chemin de stockage des models
 outpout_db="outpu_dataset_db/data_modele"
 
 #------------------------------valeurs manquantes---------------------------
@@ -118,7 +119,7 @@ def cleaner_cateogrial_data(data,c):
 
 
 
-# # division des donnnes
+# # division des donnnes e train test et validation
 def spliter_data(data,test_size=0.4):
    
     # vision des données
@@ -137,7 +138,8 @@ def spliter_data(data,test_size=0.4):
     data_test.to_csv(outpout_db+"/test_data.csv",index=False)
     data_val.to_csv(outpout_db+"/val_data.csv",index=False)
     return x_train,y_train, x_test,y_test, x_val,y_val,x
- 
+
+ # fonction de verification des lequilibre des classes (1 et 0)
 def verify_deséquilibre(y_train,y_test,y_val,title_train,title_test,title_val):
     # Création de la grille d'axes
     fig, axes = plt.subplots(1, 3, figsize=(10 ,6))  # 1 ligne, 3 colonnes
@@ -180,20 +182,15 @@ def resolution_desequilibre(features):
         # # mehode de sur-echantillonnage : resample de sklearn (tirage avec remise replace=False)
         majority_downsample=resample(majority,n_samples= len(minority), replace = True,random_state=95)
         downsampled = pd.concat([minority,majority_downsample])
-       
-
+    
       
         # #savegarde des données echantillonées
         upsampled.to_csv(outpout_db+"/upsamled_train_data.csv",index=False)
         downsampled.to_csv(outpout_db+"/dowsampled_train_data.csv", index=False)
         y_train_up=upsampled['y']
         y_train_down = downsampled['y']
-        # y_train = x2['y']
-        # # t1="Proportion sur les Donnée d'entraînement Originelle"
-        # # t2="Proportion sur les Donnée d'entraînement Sous-échantillonées,y_train_down"
-        # # t3="Proportion sur les Donnée d'entraînement Sous-échantillonées"
-        # # verify_deséquilibre(labels,t1,y_train_up,t2,y_train_up,t3)
-        # # return les dataframe echantionnées
+
+        #retourn les fetaures sur et sous echantillonées
         return y_train_up,y_train_down
      
 

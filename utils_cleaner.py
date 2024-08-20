@@ -18,6 +18,7 @@ def upload_save_meta():
     with open('input_raw_data/ucimlrepo.dotdict.dotdict.pkl', 'wb') as f:
         pickle.dump(data, f)
 
+# fonction pour diviser les données en deux partier
 def load_and_split_meta():
     # chargement du dictionnaire contenant la base de données
     with open('input_raw_data/ucimlrepo.dotdict.dotdict.pkl', 'rb') as f:

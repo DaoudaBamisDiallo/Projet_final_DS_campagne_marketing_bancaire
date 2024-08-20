@@ -23,7 +23,7 @@ def load_model():
     return data
 
 
-# # fonction d'inference
+# # fonction d'inference pour recuperer et predire le résultat
 def interference(Balance, Age, Pdays, Campaign, Housing, Previous,  Marital_married, Month_Nov,Education_secondary, Month_may):
     
     # Préparation des données
