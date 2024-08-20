@@ -5,8 +5,8 @@ import pandas as pd
 import os
 import io
 from utils_dataviz import showing_data,cat_vs_y_plot,num_vs_y_plot,bar_plot,hist_box_plot,resume_statistique,reporting_pdf
-from utils_model import missing_data,spliter_data,verify_deséquilibre,resolution_desequilibre,normalizer,vars_importences,load_data_clean   
-from utils_model import statistiques_outliers,cleaner_cateogrial_data ,model_evaluation,models,finding_outliers,resolving_outliers
+from utils_model import missing_data,spliter_data,verify_deséquilibre,resolution_desequilibre,normalizer,vars_importences,load_data_clean ,drop_Unamed
+from utils_model import statistiques_outliers,cleaner_cateogrial_data ,model_evaluation,models,finding_outliers,resolving_outliers,plot_importances_variables,save_modele
 #---------------------chemiin du repertoire de stockages des données---------------------------
 outpout_db="outpu_dataset_db/data_modele"
 
@@ -156,6 +156,8 @@ def analysing_marketing():
            
             # division
             x_train,y_train, x_test,y_test, x_val,y_val,x_sampled=spliter_data(data_cleaned)
+            train_features=x_train.drop('y',axis=1)
+            train_labels = y_train
             st.toast('Division des données réussi')
            
             # vérification de la porportion des classes prédictes (souscrit et non souscrit ) de la variables y
@@ -179,7 +181,9 @@ def analysing_marketing():
             trains_data=  st.sidebar.selectbox(label="Choix des données d'entrainement",options=choice_trains)
             # chargement des données sur et sous-échantillonées
             upsampleds ,downsampleds= load_data_clean()
-           
+            upsampleds=drop_Unamed(upsampleds)
+            downsampleds=drop_Unamed(downsampleds)
+            train_features=drop_Unamed(train_features)
             # entrainer avec les données sur(échantillonées)
             if trains_data ==  "Upsampled":
                 train_features=upsampleds.drop('y',axis=1)
@@ -189,11 +193,13 @@ def analysing_marketing():
                 train_features=downsampleds.drop('y',axis=1)
                 train_labels = downsampleds['y']
             # entrainer avec les données originele
-            else:
-                train_features=x_train
-                train_labels = y_train
+            # else:
+            #     train_features=drop_Unamed(train_features)
+            #     train_labels = y_train
+            
             # 4: entrainer le modele
             train_model = st.sidebar.button("Entrenainnement du modèle",type="primary")
+            
             if train_model:
                  # Normalisation des données par MinMaxScaler ou StandarScale ou non
                 if scaler is not "Scaler":
@@ -202,6 +208,16 @@ def analysing_marketing():
                     x_test=normalizer(x_test,scaler,x_train)
                     st.success('Normalisation réussit')
                     st.subheader("B): hoix de l'Algorithme")
+
+                # selection des meilleures variables predictrice
+                vars_imps =vars_importences(train_features,train_labels,seuil=0.017)
+                #recuperartion des colonnes
+                vars_selected=vars_imps.index.tolist()
+                #extraction des colonnes selectionnées
+                train_features=train_features[vars_selected]
+                x_test=x_test[vars_selected]
+                x_val=x_val[vars_selected]
+                
                 # a: entrainer l'algorithme de Regression logistique
                 if algos=="Regression Logistique":
                     st.subheader("Performances de Regression de Logistique")
@@ -212,6 +228,8 @@ def analysing_marketing():
                     model_evaluation(model,train_features,train_labels,"train")
                     st.markdown("Performance sur les données de test")
                     model_evaluation(model,x_test,y_test,"valide")
+                    # l'importances des variables prédictrice
+                    plot_importances_variables(vars_imps)
                 # b: entrainer l'algorithme de forêt aléatoire
                 if algos=="RandomForestClassifier":
                     st.subheader("Performances de RandomForestClassifier")
@@ -222,6 +240,8 @@ def analysing_marketing():
                      # évaluation du modéle sur les données de test
                     st.markdown("Performance sur les données de test")
                     model_evaluation(model,x_test,y_test,"valide")
+                    # l'importances des variables prédictrice
+                    plot_importances_variables(vars_imps)
                 # c: entrainer l'algorithme de supportt vecteur machine
                 if algos=="SVM":
                     st.subheader("Performance de Support Vecteur Machine")
@@ -233,6 +253,9 @@ def analysing_marketing():
                      # évaluation du modéle sur les données de test
                     st.markdown("Performance sur les données de test")
                     model_evaluation(model,x_test,y_test,"valide")
+                    # l'importances des variables prédictrice
+                    plot_importances_variables(vars_imps)
+                    
                 # d: entrainer l'algorithme de K plus proche voisines
                 if algos=="KNN":
                     st.subheader("Performances de KNN")
@@ -243,6 +266,10 @@ def analysing_marketing():
                      # évaluation du modéle sur les données de test
                     st.markdown("Performance sur les données de test")
                     model_evaluation(model,x_test,y_test,"valide")
+                    # l'importances des variables prédictrice
+                    plot_importances_variables(vars_imps)
+                  
+                    
                 # a: entrainer  l'algorithme d'arbre de décision
                 if algos=="Tree":
                     st.subheader("Performances d'arbre de decision")
@@ -254,5 +281,11 @@ def analysing_marketing():
                      # évaluation du modéle sur les données de test
                     st.markdown("Performance sur les données de test")
                     model_evaluation(model,x_test,y_test,"valide")
-                   
-    
+                    # l'importances des variables prédictrice
+                    plot_importances_variables(vars_imps)
+                
+                # Validé et enregistrer les modele dans le dossier (outpu_dataset_db\data_modele)
+                save_btn =st.button("Sauvegarder le modele et les variables selectionnées",type="primary")  
+                if algos is not None and save_btn:
+                    save_modele(vars_imps,model,algos)
+

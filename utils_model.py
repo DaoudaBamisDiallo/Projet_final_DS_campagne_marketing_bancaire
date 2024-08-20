@@ -211,34 +211,45 @@ def normalizer(data,scaler,x):
     return data
 # selction des  meilleurs variables
 
-def vars_importences(features,labels,val_x,val_y,seuil=0.017):
+def vars_importences(features,labels,seuil=0.018):
     rf = RandomForestClassifier()
-
     rf.fit(features,labels)
-
-    print(classification_report(val_y, rf.predict(val_x)))
-
     # Importance des variables indépendantes
-
-    plt.figure(figsize=(16, 5))
-
     vars_imp = pd.Series(rf.feature_importances_, index = features.columns).sort_values(ascending=False)
 
+    # Variables sélectionnées pour les algorithmes
+    vars_selected = vars_imp[vars_imp > seuil]
+# 
+    return vars_selected
+
+def drop_Unamed(data):
+    unnamde='Unnamed: 0'
+    if unnamde in data.columns:
+        data  = data.drop(columns=[unnamde],axis=1)
+    return data
+
+# fonction pour afficher l'importance de chaque variables dans la prédiction
+def plot_importances_variables(vars_imp):
+    st.subheader('C): Importance des variables lors de la  Prédiction')
+    g,ax = plt.subplots(figsize=(16, 5))
     sns.barplot(x = vars_imp.index, y=vars_imp,color='orange', edgecolor='red')
     plt.xticks(rotation=90)
     plt.xlabel("Variables")
     plt.ylabel("Score d'importance de la variable")
     plt.title("Importance des variables prédictrices")
     st.pyplot(plt)
-
-    # Variables sélectionnées pour les algorithmes
-
-    seuil = seuil
-
-    vars_selected = vars_imp[vars_imp > seuil].index.to_list()
-
-    return vars_selected
-
+# Validé et enregistrer les modele et les variables selectionnées dans le dossier (outpu_dataset_db\data_modele)
+def save_modele(vars_imp,modele,algo):
+       
+    import joblib
+    try:
+        joblib.dump(modele,f'outpu_dataset_db/data_modele/finally_model_{algo}.joblib')
+        vars_imp.to_csv("outpu_dataset_db/data_modele/vars_importances_selected.csv")
+       
+    except Exception as e:
+        st.warning(f"Une Erreure d'enregistrement  du modle: {e}")
+    else:
+         st.markdown(f"L'enregistrement du modèle {algo} et les variables selectionnées à Reussit")
 # ------------modelisation-----------------------------
 def models(algo,train_x,train_y):
     if algo=="Regression Logistique":
@@ -336,9 +347,9 @@ def load_data_clean():
     unnamde='Unnamed: 0'
 
     if unnamde in data_downsampled.columns:
-        data_downsampled  = data_downsampled.drop(columns=[unnamde])
+        data_downsampled  = data_downsampled.drop(columns=[unnamde],axis=1)
 
     if  unnamde in data_upsampled.columns:
-        data_upsampled = data_upsampled.drop(columns=[unnamde])
+        data_upsampled = data_upsampled.drop(columns=[unnamde],axis=1)
 
     return data_upsampled,data_downsampled
